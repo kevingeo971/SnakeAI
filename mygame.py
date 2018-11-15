@@ -8,11 +8,12 @@ score = 0
 moves = 0
 s = curses.initscr()
 curses.curs_set(0)
-sh, sw = s.getmaxyx()
+#sh, sw = s.getmaxyx()
 #print(sh,sw)
+sh, sw = 10,10
 w = curses.newwin(sh, sw, 0, 0)
 w.keypad(1)
-w.timeout(100)
+w.timeout(1000)
 
 snk_x = sw/4
 snk_y = sh/2
@@ -27,9 +28,10 @@ w.addch(food[0], food[1],curses.ACS_PI)
 
 key = curses.KEY_RIGHT
 
-while True:
+while moves<=500:
     
     next_key = w.getch()
+    next_key = random.choice([261,260,258,259,261,261])
     
     if next_key == curses.KEY_BACKSPACE :
         curses.endwin()
@@ -76,3 +78,7 @@ while True:
         w.addch(tail[0], tail[1], ' ')
 
     w.addch(snake[0][0], snake[0][1], curses.ACS_CKBOARD)
+curses.endwin()
+print(score)
+print(moves)
+quit()
