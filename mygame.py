@@ -7,7 +7,7 @@ import curses
 total_games = 10000
 max_moves = 500
 frames = 1
-sh, sw = 20,20
+sh, sw = 25,25
 #---------------------------------
 
 score_list = []
