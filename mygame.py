@@ -42,7 +42,9 @@ while True:
     new_head = [snake[0][0], snake[0][1]]
     moves += 1
     if key == curses.KEY_DOWN:
-        new_head[0] = (( new_head[0] + 1 ) % sh)
+        new_head[0] += 1
+        if (new_head[0]==sh-1): 
+            new_head[0]=1 
     if key == curses.KEY_UP:
         new_head[0] -= 1
         if (new_head[0]==0): 
@@ -52,7 +54,9 @@ while True:
         if (new_head[1]==0): 
             new_head[1]=sw-2
     if key == curses.KEY_RIGHT:
-        new_head[1] = (( new_head[1] + 1 ) % sw ) 
+        new_head[1] += 1
+        if (new_head[1]==sw-1): 
+            new_head[1]=1
 
     snake.insert(0, new_head)
 
