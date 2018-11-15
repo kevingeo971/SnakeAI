@@ -1,6 +1,8 @@
 import random
 import curses
 
+''' Snake RL '''
+
 reward = 0
 score = 0
 moves = 0
