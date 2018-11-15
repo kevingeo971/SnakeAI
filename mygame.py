@@ -4,11 +4,13 @@ import curses
 ''' ---- SNAKE RL ---- '''
 
 #game parameters------------------
+
 total_games = 10000      
 max_moves = 500
 frames = 1
 sh, sw = 15,15
 threshold_score = 7
+
 #---------------------------------
 
 score_list = []
@@ -19,7 +21,7 @@ for i in range(0,total_games):
     score = 0
     moves = 0
     
-    moves_and_actions_list = []   # [[[sy,sx,fy,fx],[action]] , [[sy,sx,fy,fx],[action]] , [[sy,sx,fy,fx],[action]] ...... ]
+    moves_and_actions_list = []   # [[[sy,sx,fy,fx],[L,R,U,D]] , [[sy,sx,fy,fx],[L,R,U,D]] , [[sy,sx,fy,fx],[L,R,U,D]] ...... ]
     previous_observation = []     # [sy,sx,fy,fx]
     temp = []
 
@@ -49,31 +51,37 @@ for i in range(0,total_games):
         previous_observation = [snake[0][0],snake[0][1],food[0],food[1]]
         #next_key = w.getch()
         next_key = random.choice([261,260,258,259])
-        
-        temp = [previous_observation,next_key]
-        moves_and_actions_list.append(temp)
+        action=[]
+        #temp = [previous_observation,next_key]
+        #moves_and_actions_list.append(temp)
 
         key = key if next_key == -1 else next_key
 
         new_head = [snake[0][0], snake[0][1]]
         moves += 1
         if key == curses.KEY_DOWN:
+            action = [0,0,0,1]
             new_head[0] += 1
             if (new_head[0]==sh-1): 
                 new_head[0]=1 
         if key == curses.KEY_UP:
+            action=[0,0,1,0]
             new_head[0] -= 1
             if (new_head[0]==0): 
                 new_head[0]=sh-2
         if key == curses.KEY_LEFT:
+            action=[1,0,0,0]
             new_head[1] -= 1
             if (new_head[1]==0): 
                 new_head[1]=sw-2
         if key == curses.KEY_RIGHT:
+            action=[0,1,0,0]
             new_head[1] += 1
             if (new_head[1]==sw-1): 
                 new_head[1]=1
 
+        temp = [previous_observation,action]
+        moves_and_actions_list.append(temp)
         snake.insert(0, new_head)
 
         if snake[0] == food:
