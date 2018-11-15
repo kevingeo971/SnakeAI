@@ -4,10 +4,11 @@ import curses
 ''' Snake RL '''
 
 #game parameters------------------
-total_games = 10000
+total_games = 20000         
 max_moves = 500
 frames = 1
-sh, sw = 25,25
+sh, sw = 8,8
+threshold_score = 0
 #---------------------------------
 
 score_list = []
@@ -37,16 +38,11 @@ for i in range(0,total_games):
     food = [sh/2, sw/2]
     w.addch(food[0], food[1],curses.ACS_PI)
 
+    key=0
     while moves<=max_moves:
     
-        #next_key = w.getch()
-        next_key = random.choice([261,260,258,259,261,261])
-    
-        if next_key == curses.KEY_BACKSPACE :
-            curses.endwin()
-            print(score)
-            print(moves)
-            quit()
+        next_key = w.getch()
+        next_key = random.choice([261,260,258,259])
 
         key = key if next_key == -1 else next_key
 
@@ -90,6 +86,6 @@ for i in range(0,total_games):
     curses.endwin()
     score_list.append(score)
 
-print(sorted(score_list))
-print(score_list[9995:9999])
+score_list=sorted(score_list)
+print(score_list[19989:19999])
 
