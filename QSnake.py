@@ -15,7 +15,7 @@ from collections import deque
 
 import time
 
-''' ---- SNAKE RL ---- '''
+''' ------------- SNAKE RL -------------- '''
 
 def create_model(n_states, n_actions):
     # Maximum future discounted reward
@@ -84,7 +84,10 @@ w.timeout(frames)
 snk_x = sw/4
 snk_y = sh/2
 
-def reset(w,snake,food):
+def reset():
+    global w
+    global snake
+    global food
     w = curses.newwin(sh, sw, 0, 0)
     w.keypad(1)
     w.timeout(frames)
@@ -111,19 +114,21 @@ food = [sh/2, sw/2]
 w.addch(food[0], food[1],curses.ACS_PI)
 
 
-initial_state = reset(w,snake,food)
+initial_state = reset()
 
-key=0
+key = 0
 
-moves=0
+moves = 0
 
 while 1:
     
-    moves+=1
+    moves = moves + 1
 
-    if moves>20: 
-
-        reset(w,snake,food)    
+    if moves>50: 
+        #curses.endwin()
+        #quit()
+        reset()  
+        moves = 0  
 
     next_key = w.getch()
 
