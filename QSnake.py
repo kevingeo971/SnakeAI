@@ -88,6 +88,8 @@ def reset():
     global w
     global snake
     global food
+    global score 
+    score = 0
     w = curses.newwin(sh, sw, 0, 0)
     w.keypad(1)
     w.timeout(frames)
@@ -103,6 +105,53 @@ def reset():
     w.addch(food[0], food[1],curses.ACS_PI) 
     w.addch(snake[0][0], snake[0][1], curses.ACS_CKBOARD)
     return np.array([snake[0][0],snake[0][1],food[0],food[1]])
+
+def step(key):
+    global snake
+    global food
+    global w
+    global score
+    new_head = [snake[0][0], snake[0][1]]
+    #moves += 1
+    if key == curses.KEY_DOWN:
+        
+        new_head[0] += 1
+        if (new_head[0]==sh-1): 
+            new_head[0]=1 
+    if key == curses.KEY_UP:
+        
+        new_head[0] -= 1
+        if (new_head[0]==0): 
+            new_head[0]=sh-2
+    if key == curses.KEY_LEFT:
+        
+        new_head[1] -= 1
+        if (new_head[1]==0): 
+            new_head[1]=sw-2
+    if key == curses.KEY_RIGHT:
+        
+        new_head[1] += 1
+        if (new_head[1]==sw-1): 
+            new_head[1]=1
+    
+    snake.insert(0, new_head)
+
+    if snake[0] == food:
+        score += 1
+        #print(score)
+        food = None
+        while food is None:
+            nf = [
+                random.randint(2, sh-2),
+                random.randint(2, sw-2)
+            ]
+            food = nf if nf not in snake else None
+        w.addch(food[0], food[1], curses.ACS_PI)
+    else:
+        tail = snake.pop()
+        w.addch(tail[0], tail[1], ' ')
+
+    w.addch(snake[0][0], snake[0][1], curses.ACS_CKBOARD)
 
 snake = [
     [snk_y, snk_x],
@@ -134,47 +183,9 @@ while 1:
 
     key = key if next_key == -1 else next_key
 
-    new_head = [snake[0][0], snake[0][1]]
-    moves += 1
-    if key == curses.KEY_DOWN:
-        action = np.array([0,0,0,1])
-        new_head[0] += 1
-        if (new_head[0]==sh-1): 
-            new_head[0]=1 
-    if key == curses.KEY_UP:
-        action=np.array([0,0,1,0])
-        new_head[0] -= 1
-        if (new_head[0]==0): 
-            new_head[0]=sh-2
-    if key == curses.KEY_LEFT:
-        action=np.array([1,0,0,0])
-        new_head[1] -= 1
-        if (new_head[1]==0): 
-            new_head[1]=sw-2
-    if key == curses.KEY_RIGHT:
-        action=np.array([0,1,0,0])
-        new_head[1] += 1
-        if (new_head[1]==sw-1): 
-            new_head[1]=1
+    step(key)
+
     
-    snake.insert(0, new_head)
-
-    if snake[0] == food:
-        score += 1
-        #print(score)
-        food = None
-        while food is None:
-            nf = [
-                random.randint(2, sh-2),
-                random.randint(2, sw-2)
-            ]
-            food = nf if nf not in snake else None
-        w.addch(food[0], food[1], curses.ACS_PI)
-    else:
-        tail = snake.pop()
-        w.addch(tail[0], tail[1], ' ')
-
-    w.addch(snake[0][0], snake[0][1], curses.ACS_CKBOARD)
     
 curses.endwin()
 print(initial_state)
