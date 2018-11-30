@@ -1,17 +1,23 @@
 import random
 import curses
+import numpy as np
+import tflearn
+from tflearn.layers.core import input_data, dropout, fully_connected
+from tflearn.layers.estimator import regression
+from statistics import median, mean
+from collections import Counter
 
 ''' ---- SNAKE RL ---- '''
 
-#game parameters------------------
+#game parameters----------------------
 
-total_games = 10000      
+total_games = 20000    
 max_moves = 500
 frames = 1
 sh, sw = 15,15
-threshold_score = 7
+threshold_score = 2
 
-#---------------------------------
+#-------------------------------------
 
 score_list = []
 training_data = []
@@ -110,5 +116,14 @@ for i in range(0,total_games):
 score_list=sorted(score_list)
 print(score_list[total_games-5:total_games-1])
 print(len(training_data))
-print(training_data[0])
+print(training_data[0:10])
+X=[]
+Y=[]
+for i in training_data:
+    X.append(i[0])
+    Y.append(i[1])
+
+print(X[0])
+print(Y[0])
+
 
