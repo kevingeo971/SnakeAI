@@ -22,8 +22,8 @@ def create_model(n_states, n_actions):
     # Maximum future discounted reward
     # Q(S_t)
     state = Input(shape=(n_states,))
-    x1 = Dense(4, activation='relu')(state)
-    x2 = Dense(4, activation='relu')(x1)
+    x1 = Dense(8, activation='relu')(state)
+    x2 = Dense(8, activation='relu')(x1)
     out = Dense(n_actions)(x2)
     # Q(S_t)(a_t)
     actions = Input(shape=(n_actions,))
@@ -53,7 +53,7 @@ def train_data(minibatch, model):
 
 total_games = 200
 max_moves = 500
-frames = 100
+frames = 10
 sh, sw = 15,15
 threshold_score = 4
 
@@ -62,11 +62,11 @@ model, out = create_model(STATES, ACTIONS)
 INITIAL_EPSILON = 1e-1
 FINAL_EPSILON = 1e-4
 DECAY = 0.9
-GAMMA = 0.9 # decay rate of past observations
+GAMMA = 0.7 # decay rate of past observations
 OBSERVE = 5000. # timesteps to observe before training
 REPLAY_MEMORY = 5000 # number of previous transitions to remember
 TIME_LIMIT = 100000
-BATCH = 128
+BATCH = 2048
 
 #-------------------------------------
 
@@ -90,8 +90,6 @@ def reset():
     global snake
     global food
     global score 
-    global moves
-    moves = 0
     score = 0
     w = curses.newwin(sh, sw, 0, 0)
     w.keypad(1)
@@ -109,15 +107,24 @@ def reset():
     w.addch(snake[0][0], snake[0][1], curses.ACS_CKBOARD)
     return np.array([snake[0][0],snake[0][1],food[0],food[1]])
 
-def step(key):
+def step(action):
+    
     global snake
     global food
     global w
     global score
-    global moves
-    moves += 1
-    new_head = [snake[0][0], snake[0][1]]
+    global s
+    #global moves
     #moves += 1
+    new_head = [snake[0][0], snake[0][1]]
+
+    s.addstr(16,0,"kevin")
+
+    key_val=[261,260,258,259]
+
+    key = w.getch()
+    key = key_val[action]
+
     if key == curses.KEY_DOWN:
         
         new_head[0] += 1
@@ -171,13 +178,13 @@ def step(key):
 
     w.addch(snake[0][0], snake[0][1], curses.ACS_CKBOARD)
 
-    next_state = np.array( [ snake[0][0],snake[0][1],food[0],food[1] ] )
+    state = np.array( [ snake[0][0],snake[0][1],food[0],food[1] ] )
 
     terminal = False
     if score >= 10 : 
         terminal = True
 
-    return next_state, reward, terminal
+    return state, reward, terminal
 
 snake = [
     [snk_y, snk_x],
@@ -188,37 +195,78 @@ snake = [
 food = [sh/2, sw/2]
 w.addch(food[0], food[1],curses.ACS_PI)
 
+reset()
 
-initial_state = reset()
+D = deque(maxlen=REPLAY_MEMORY)
+loss = []
+
+actions = np.zeros(ACTIONS)
+actions[np.random.choice(ACTIONS)] = 1
+state, reward, terminal = step(np.argmax(actions))
+
+epsilon = INITIAL_EPSILON
+
+points_array = [0]
+start = time.time()
 
 key = 0
 
-moves = 0
-
 l=[]
 
-while moves<=100:
+for moves in range(0,TIME_LIMIT):
+       
+    readout_t = out.predict(state[None, :])
+
+    actions = np.zeros([ACTIONS])
+    if np.random.random() <= epsilon:
+        actions[np.random.choice(ACTIONS)] = 1
+    else:
+        actions[np.argmax(readout_t)] = 1
+
+    if epsilon > FINAL_EPSILON and moves > OBSERVE*2:
+        epsilon *= DECAY
     
-    moves = moves + 1
+    next_state,reward,terminal= step(np.argmax(actions))
+    D.append((state,actions,reward,next_state,terminal))
+
+    if terminal:
+        points_array.append(0)
+        reset()
+    else:
+        points_array[-1] += score
+
+    if moves > OBSERVE:
+        # sample a minibatch to train on
+        idx = np.random.choice(REPLAY_MEMORY, BATCH, replace=False)
+        minibatch = [D[i] for i in idx]
+        # get the batch variables
+        s_t_batch, a_batch, y_batch = train_data(minibatch, out)
+        # perform gradient step
+        loss.append(model.train_on_batch([s_t_batch, a_batch], y_batch))
+
+    state = next_state
+
+    #if t%(TIME_LIMIT/20)==0:
+        #print('Episode :', moves,'s, average up time: ',np.mean(points_array[-100:]))
+        
 
     '''if moves>50: 
         #curses.endwin()
         #quit()
         reset()  
-    '''
-    next_key = w.getch()
-    #next_key = random.choice([261,260,258,259])
+    
+    #next_key = w.getch()
+    next_key = random.choice([0,1,2,3])
 
     key = key if next_key == -1 else next_key
 
-    next_state, reward, terminal = step(key)
+    state, reward, terminal = step(key)
 
-    l.append([next_state,reward,terminal])
+    l.append([state,reward,terminal])
+    '''
 
 curses.endwin()
 
-print(l)
-
-for i in l:
+for i in D:
     print(i)
 
