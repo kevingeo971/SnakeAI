@@ -89,6 +89,8 @@ def reset():
     global snake
     global food
     global score 
+    global moves
+    moves = 0
     score = 0
     w = curses.newwin(sh, sw, 0, 0)
     w.keypad(1)
@@ -111,6 +113,8 @@ def step(key):
     global food
     global w
     global score
+    global moves
+    moves += 1
     new_head = [snake[0][0], snake[0][1]]
     #moves += 1
     if key == curses.KEY_DOWN:
@@ -177,7 +181,7 @@ while 1:
         #curses.endwin()
         #quit()
         reset()  
-        moves = 0  
+        
 
     next_key = w.getch()
 
