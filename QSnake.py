@@ -14,6 +14,7 @@ from keras.optimizers import Adam
 from collections import deque
 
 import time
+import math
 
 ''' ------------- SNAKE RL -------------- '''
 
@@ -140,6 +141,19 @@ def step(key):
     
     snake.insert(0, new_head)
 
+    #------------  reward   -----------------------------------
+   
+    distance = float( math.sqrt( (snake[0][0] - food[0])**2 + (snake[0][1] - food[1])**2 ) )
+
+    if snake[0] == food :
+        food_reward = 20
+    else:
+        food_reward = 0
+
+    reward = food_reward - 1*distance
+
+    #------------  reward   -----------------------------------
+
     if snake[0] == food:
         score += 1
         #print(score)
@@ -157,6 +171,14 @@ def step(key):
 
     w.addch(snake[0][0], snake[0][1], curses.ACS_CKBOARD)
 
+    next_state = np.array( [ snake[0][0],snake[0][1],food[0],food[1] ] )
+
+    terminal = False
+    if score >= 10 : 
+        terminal = True
+
+    return next_state, reward, terminal
+
 snake = [
     [snk_y, snk_x],
     [snk_y, snk_x-1],
@@ -173,25 +195,30 @@ key = 0
 
 moves = 0
 
-while 1:
+l=[]
+
+while moves<=100:
     
     moves = moves + 1
 
-    if moves>50: 
+    '''if moves>50: 
         #curses.endwin()
         #quit()
         reset()  
-        
-
+    '''
     next_key = w.getch()
+    #next_key = random.choice([261,260,258,259])
 
     key = key if next_key == -1 else next_key
 
-    step(key)
+    next_state, reward, terminal = step(key)
 
-    
-    
+    l.append([next_state,reward,terminal])
+
 curses.endwin()
-print(initial_state)
 
+print(l)
+
+for i in l:
+    print(i)
 
