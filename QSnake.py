@@ -23,8 +23,9 @@ def create_model(n_states, n_actions):
     # Q(S_t)
     state = Input(shape=(n_states,))
     x1 = Dense(8, activation='relu')(state)
-    x2 = Dense(8, activation='relu')(x1)
-    out = Dense(n_actions)(x2)
+    x2 = Dense(12, activation='relu')(x1)
+    x3 = Dense(8, activation='relu')(x2)
+    out = Dense(n_actions)(x3)
     # Q(S_t)(a_t)
     actions = Input(shape=(n_actions,))
     out2 = Dot(axes=-1)([out, actions])
@@ -53,17 +54,17 @@ def train_data(minibatch, model):
 
 total_games = 200
 max_moves = 500
-frames = 10
+frames = 5
 sh, sw = 15,15
-threshold_score = 4
+threshold_score = 20
 
 STATES, ACTIONS = 4,4
 model, out = create_model(STATES, ACTIONS)
 INITIAL_EPSILON = 1e-1
-FINAL_EPSILON = 1e-4
+FINAL_EPSILON = 1e-3
 DECAY = 0.9
-GAMMA = 0.7 # decay rate of past observations
-OBSERVE = 5000. # timesteps to observe before training
+GAMMA = 0.9 # decay rate of past observations
+OBSERVE = 5000 # timesteps to observe before training
 REPLAY_MEMORY = 5000 # number of previous transitions to remember
 TIME_LIMIT = 100000
 BATCH = 2048
@@ -72,6 +73,8 @@ BATCH = 2048
 
 score = 0
 moves = 0
+games = 0
+target_reached = 0
 
 s = curses.initscr()
 curses.curs_set(0)
@@ -90,6 +93,8 @@ def reset():
     global snake
     global food
     global score 
+    global games
+    games+=1
     score = 0
     w = curses.newwin(sh, sw, 0, 0)
     w.keypad(1)
@@ -114,11 +119,13 @@ def step(action):
     global w
     global score
     global s
-    #global moves
+    global moves
+    global target_reached
     #moves += 1
-    new_head = [snake[0][0], snake[0][1]]
 
-    s.addstr(16,0,"kevin")
+    dead = False     
+
+    new_head = [snake[0][0], snake[0][1]]
 
     key_val=[261,260,258,259]
 
@@ -144,9 +151,12 @@ def step(action):
         
         new_head[1] += 1
         if (new_head[1]==sw-1): 
-            new_head[1]=1
-    
+            new_head[1]=1 
+
     snake.insert(0, new_head)
+
+    if snake[0][0] in [1, sh-2] or snake[0][1]  in [1, sw-2]:
+        dead = True  
 
     #------------  reward   -----------------------------------
    
@@ -159,6 +169,9 @@ def step(action):
 
     reward = food_reward - 1*distance
 
+    if dead == True:
+        reward = (-40)
+
     #------------  reward   -----------------------------------
 
     if snake[0] == food:
@@ -167,8 +180,8 @@ def step(action):
         food = None
         while food is None:
             nf = [
-                random.randint(2, sh-2),
-                random.randint(2, sw-2)
+                random.randint(3, sh-3),
+                random.randint(3, sw-3)
             ]
             food = nf if nf not in snake else None
         w.addch(food[0], food[1], curses.ACS_PI)
@@ -181,8 +194,20 @@ def step(action):
     state = np.array( [ snake[0][0],snake[0][1],food[0],food[1] ] )
 
     terminal = False
-    if score >= 10 : 
+    if score >= threshold_score : 
         terminal = True
+        target_reached += 1
+
+    s.addstr(16,0,"Moves = " + str(moves))
+    s.addstr(17,0,"Score = " + str(score))
+    s.addstr(18,0,"Games = " + str(games))
+    #s.addstr(19,0,"Target Reached = " + str(target_reached))
+    s.addstr(19,0,"Reward = " + str(reward))
+    s.addstr(20,0,"")
+    s.refresh()
+
+    if dead:
+        reset()
 
     return state, reward, terminal
 
@@ -223,7 +248,7 @@ for moves in range(0,TIME_LIMIT):
     else:
         actions[np.argmax(readout_t)] = 1
 
-    if epsilon > FINAL_EPSILON and moves > OBSERVE*2:
+    if epsilon > FINAL_EPSILON and moves > OBSERVE*3:
         epsilon *= DECAY
     
     next_state,reward,terminal= step(np.argmax(actions))
