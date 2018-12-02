@@ -54,9 +54,9 @@ def train_data(minibatch, model):
 
 total_games = 200
 max_moves = 500
-frames = 5
+frames = 1
 sh, sw = 15,15
-threshold_score = 20
+threshold_score = 100
 
 STATES, ACTIONS = 4,4
 model, out = create_model(STATES, ACTIONS)
@@ -201,9 +201,10 @@ def step(action):
     s.addstr(16,0,"Moves = " + str(moves))
     s.addstr(17,0,"Score = " + str(score))
     s.addstr(18,0,"Games = " + str(games))
-    #s.addstr(19,0,"Target Reached = " + str(target_reached))
-    s.addstr(19,0,"Reward = " + str(reward))
-    s.addstr(20,0,"")
+    s.addstr(19,0,"Number of times target reached = " + str(target_reached))
+    s.addstr(20,0,"Reward = " + str(reward))
+    s.addstr(21,0,"")
+    s.addstr(22,0,"")
     s.refresh()
 
     if dead:
